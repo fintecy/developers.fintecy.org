@@ -1,0 +1,777 @@
+openapi: 3.0.1
+info:
+  title: Fintecy App
+  version: 1.0.0
+  description: This is api to connect to server of fintecy app.
+  contact:
+    email: anton@fintecy.org
+  license:
+    name: Apache 2.0
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+  termsOfService: 'http://fintecy.co/terms/'
+externalDocs:
+  description: Find out more about Fintecy
+  url: 'http://fintecy.org'
+servers:
+  - description: prod
+    url: 'https://api.fintecy.org/v1'
+  - description: dev
+    url: 'https://api-sandbox.fintecy.org/v1'
+  - description: local
+    url: 'http://localhost:8080'
+tags:
+  - name: auth
+    description: Authorization actions
+  - name: users
+    description: User management
+  - name: accounts
+    description: Accounts in finance organizations
+  - name: wallets
+    description: Account wallet is a place, where money actually stored
+  - name: transactions
+    description: Single currency cashflow
+paths:
+  /auth/login:
+    post:
+      operationId: authLogin
+      summary: Logs user into the system
+      description: Logs user into the system with user credentials to get jwt token in respose
+      tags:
+        - auth
+      requestBody:
+        required: true
+        description: Login with user credentials
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Credentials'
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthToken'
+          description: successful operation
+        404:
+          description: Account not found
+          content: {}
+      security:
+        - basicAuth: []
+  /auth/confirm:
+    get:
+      operationId: confirmEmail
+      summary: Confirmation of email
+      description: Confirmation of ownership of email address
+      tags:
+        - auth
+      parameters:
+        - name: token
+          in: query
+          explode: false
+          required: true
+          description: Confirmation token
+          example: '123456'
+          schema:
+            format: string
+            minLength: 6
+            maxLength: 6
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthToken'
+          description: successful operation
+        404:
+          description: Account not found
+          content: {}
+      security:
+        - basicAuth: []
+  /auth/refresh:
+    post:
+      operationId: authRefresh
+      summary: Refresh jwt tokens
+      description: Replace refresh token on jwt tokens
+      tags:
+        - auth
+      requestBody:
+        required: true
+        description: Refresh token from auth/login
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshToken'
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthToken'
+          description: successful operation
+        400:
+          description: Invalid refresh token
+          content: {}
+      security:
+        - bearerAuth: []
+  /users:
+    get:
+      operationId: getUsers
+      summary: Get user list
+      description: Load list of registered users
+      tags:
+        - users
+      parameters:
+        - name: status
+          in: query
+          explode: false
+          required: false
+          description: 'Filter by user status'
+          schema:
+            type: string
+      responses:
+        default:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/User'
+      security:
+        - bearerAuth: []
+    post:
+      operationId: createUser
+      summary: Register new user
+      description: Register new user with minimum parameters
+      tags:
+        - users
+      requestBody:
+        required: true
+        description: Created user object
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Registration'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: successful operation
+        '400':
+          content: { }
+          description: User with this email already exist
+      security:
+        - bearerAuth: []
+  '/users/{username}':
+    get:
+      operationId: getUser
+      description: Fetch user details from server
+      summary: Get user by user name
+      tags:
+        - users
+      parameters:
+        - name: username
+          in: path
+          explode: false
+          required: true
+          description: 'The username that needs to be fetched.'
+          schema:
+            type: string
+          style: simple
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: successful operation
+        '400':
+          content: { }
+          description: Invalid username supplied
+        '404':
+          content: { }
+          description: User not found
+      security:
+        - bearerAuth: []
+    delete:
+      description: This can only be done by the logged in user.
+      operationId: deleteUser
+      summary: Delete user
+      tags:
+        - users
+      parameters:
+        - name: username
+          in: path
+          explode: false
+          required: true
+          description: The name that needs to be deleted
+          schema:
+            type: string
+          style: simple
+      responses:
+        '400':
+          content: {}
+          description: Invalid username supplied
+        '404':
+          content: {}
+          description: User not found
+      security:
+        - bearerAuth: []
+  '/accounts':
+    get:
+      operationId: getAccounts
+      summary: Get all accounts
+      description: Get list of accounts
+      tags:
+        - accounts
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/Account'
+                type: array
+          description: successful operation
+        '400':
+          content: { }
+          description: Invalid status value
+      security:
+        - bearerAuth: []
+    post:
+      operationId: addAccount
+      summary: Add new user account
+      description: Add new account for specific user
+      tags:
+        - accounts
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Account'
+        description: create new account
+        required: true
+      responses:
+        '405':
+          content: {}
+          description: Invalid input
+      security:
+        - bearerAuth: []
+  '/accounts/{accountId}':
+    get:
+      operationId: getAccountDetails
+      summary: Get account details
+      description: Get user account details
+      tags:
+        - accounts
+      parameters:
+        - name: accountId
+          in: path
+          explode: false
+          required: true
+          description: 'Account for editing.'
+          schema:
+            type: string
+          style: simple
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+          description: successful operation
+        '400':
+          content: { }
+          description: Invalid status value
+      security:
+        - bearerAuth: []
+    put:
+      operationId: updateAccount
+      summary: Update an existing account
+      tags:
+        - accounts
+      parameters:
+        - name: accountId
+          in: path
+          explode: false
+          required: true
+          description: 'Account for editing.'
+          schema:
+            type: string
+          style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Account'
+        description: Account object that needs to be added to the app
+        required: true
+      responses:
+        '400':
+          content: {}
+          description: Invalid ID supplied
+        '404':
+          content: {}
+          description: Account not found
+        '405':
+          content: {}
+          description: Validation exception
+      security:
+        - bearerAuth: []
+    delete:
+      operationId: deleteAccount
+      summary: delete account
+      tags:
+        - accounts
+      parameters:
+        - name: accountId
+          in: path
+          explode: false
+          required: true
+          description: 'Account to delete.'
+          schema:
+            type: string
+          style: simple
+      responses:
+        default:
+          content: {}
+          description: 'successful operation'
+      security:
+        - bearerAuth: []
+  '/wallets':
+    get:
+      operationId: getWallets
+      description: Get list of user accounts
+      summary: Get all wallets
+      tags:
+        - wallets
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/Wallet'
+                type: array
+          description: successful operation
+        '400':
+          content: { }
+          description: Invalid status value
+      security:
+        - bearerAuth: []
+    post:
+      operationId: addWallet
+      summary: Add a new wallet to the account
+      tags:
+        - wallets
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Wallet'
+        description: create new account
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Wallet'
+          description: successful operation
+        '400':
+          content: { }
+          description: wallet already exist
+      security:
+        - bearerAuth: []
+  '/wallets/{walletId}':
+    get:
+      operationId: getWallet
+      description: Returns a single wallet details
+      summary: Wallet details
+      tags:
+        - wallets
+      parameters:
+        - name: walletId
+          in: path
+          explode: false
+          required: true
+          description: ID of wallet to return
+          schema:
+            format: uuid
+            type: string
+          style: simple
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Wallet'
+          description: successful operation
+        '400':
+          content: {}
+          description: Invalid ID supplied
+        '404':
+          content: {}
+          description: Pet not found
+      security:
+        - bearerAuth: []
+    put:
+      operationId: updateWallet
+      summary: Update an existing wallet details
+      tags:
+        - wallets
+      parameters:
+        - name: walletId
+          in: path
+          explode: false
+          required: true
+          description: ID of wallet to return
+          schema:
+            format: uuid
+            type: string
+          style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Wallet'
+        description: Update wallet details
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Wallet'
+          description: successful operation
+        '400':
+          content: { }
+          description: wallet already exist
+      security:
+        - bearerAuth: []
+    delete:
+      operationId: deleteWallet
+      summary: Delete a wallet
+      tags:
+        - wallets
+      parameters:
+        - name: walletId
+          in: path
+          explode: false
+          required: true
+          description: Wallet id to delete
+          schema:
+            format: uuid
+            type: string
+      responses:
+        default:
+          content: {}
+          description: successful operation
+      security:
+        - bearerAuth: []
+  '/wallets/{walletId}/transactions':
+    get:
+      operationId: getWalletTransactions
+      summary: Wallet transactions
+      description: Blotter of wallet transactions
+      tags:
+        - transactions
+      parameters:
+        - name: walletId
+          in: path
+          explode: false
+          required: true
+          description: Wallet id to delete
+          schema:
+            format: uuid
+            type: string
+          style: simple
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Transaction'
+          description: successful operation
+      security:
+        - bearerAuth: []
+  '/transactions':
+    get:
+      operationId: getTransactions
+      summary: Transaction blotter
+      description: Returns a transaction blotter
+      tags:
+        - transactions
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Transaction'
+          description: "list of user transactions"
+      security:
+        - bearerAuth: []
+  '/transactions/{transactionId}':
+    get:
+      operationId: getTransactionDetails
+      summary: Find transaction details
+      description: Find transaction details
+      tags:
+        - transactions
+      parameters:
+        - name: transactionId
+          in: path
+          explode: false
+          required: true
+          description: 'transaction uuid'
+          schema:
+            type: string
+            format: uuid
+          style: simple
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+          description: successful operation
+        '400':
+          content: {}
+          description: Invalid ID supplied
+        '404':
+          content: {}
+          description: Transaction not found
+      security:
+        - bearerAuth: []
+    post:
+      operationId: addTransaction
+      summary: Add transaction
+      description: Add transaction to blotter
+      tags:
+        - transactions
+      parameters:
+        - name: transactionId
+          in: path
+          explode: false
+          required: true
+          description: 'transaction uuid'
+          schema:
+            type: string
+            format: uuid
+          style: simple
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              $ref: '#/components/schemas/Transaction'
+        description: order placed for purchasing the pet
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+          description: successful operation
+        '400':
+          content: {}
+          description: Invalid Order
+      security:
+        - bearerAuth: []
+    delete:
+      operationId: deleteTransaction
+      summary: Delete transaction by ID
+      description: Delete specified transaction
+      tags:
+        - transactions
+      parameters:
+        - name: transactionId
+          in: path
+          explode: false
+          required: true
+          description: 'transaction uuid'
+          schema:
+            type: string
+            format: uuid
+          style: simple
+      responses:
+        '400':
+          content: {}
+          description: Invalid ID supplied
+        '404':
+          content: {}
+          description: Order not found
+
+components:
+  schemas:
+    JwtToken:
+      example: "eyJhbGciOiJFUzI1NiJ9.eyJzdWIiOiI5YjkxNjdiYS1iYTQ1LTQ4ODMtYTM5MS00ZjE5MWIxM2IxYWYiLCJleHAiOjE2MDk1OTYzMjYsImF1ZCI6IjMzMDhjOTI2LTBiMTItNDA4Mi1hM2EyLWJkMWYwNWEwODM0OSIsInJvbGVzIjoiW1wiRklOVEVDWV9VU0VSXCJdIiwidXNlcl9pZCI6ImYyOGY3NGM4LTQ1NTktNGU5MC1hZTUwLWZjNWNmZmJlNTMxYiIsImlzcyI6Imh0dHBzOi8vaWQuZmludGVjeS5hcHAiLCJpYXQiOjE2MDk1MDk5MjZ9._qNiT1_O_g4atPk4jOzqUEHnPyV0dSXdkbd5tYlDBzHjuFWkQr5SWxPFm_YcgHhZ70UN81pcT1iwsiQjWd9OZg"
+      type: string
+    RefreshToken:
+      properties:
+        refreshToken:
+          $ref: "#/components/schemas/JwtToken"
+      type: object
+    AuthToken:
+      properties:
+        accessToken:
+          $ref: "#/components/schemas/JwtToken"
+        refreshToken:
+          $ref: "#/components/schemas/JwtToken"
+      type: object
+    Credentials:
+      example:
+        username: "john.doe@example.com"
+        password: "#DZ2@ZsR-p+#$43JSWf&tLy6M"
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+      type: object
+    Registration:
+      example:
+        firstName: "John"
+        lastName: "Doe"
+        email: "john.doe@example.com"
+        password: "#DZ2@ZsR-p+#$43JSWf&tLy6M"
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+      type: object
+    User:
+      example:
+        id: "0e0de58f-8d29-49d8-84bb-30c3d9172675"
+        firstName: "John"
+        lastName: "Doe"
+        username: "john.doe"
+        email: "john.doe@example.com"
+        password: "#DZ2@ZsR-p+#$43JSWf&tLy6M"
+        state: 'ACTIVE'
+      properties:
+        id:
+          format: uuid
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        username:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        state:
+          description: user state
+          enum:
+            - 'REGISTERED'
+            - 'ACTIVE'
+            - 'DELETED'
+      type: object
+    Account:
+      example:
+        id: '1c600fc7-0d99-42b4-abea-eb74f5e6ab0a'
+        userId: '89511893-7ee7-4ca0-ace6-821895ecea31'
+        organizationId: '828d9f32-1465-4b48-84a0-02638c2c0f33'
+        name: 'HSBC'
+        state: 'ACTIVE'
+      properties:
+        id:
+          format: uuid
+          type: string
+        userId:
+          format: uuid
+          type: string
+        organizationId:
+          format: uuid
+          type: string
+        name:
+          type: string
+        state:
+          description: account state
+          enum:
+            - 'ACTIVE'
+            - 'CLOSED'
+          type: string
+      required:
+        - name
+        - photoUrls
+      type: object
+    Wallet:
+      example:
+        id: 'b8694f3d-e843-4f3b-8eaf-ac7f5cb3c25d'
+        accountId: 'b8694f3d-e843-4f3b-8eaf-ac7f5cb3c25d'
+        name: 'HSBC Advance'
+        type: 'Checking account'
+        currency: 'GBP'
+      properties:
+        id:
+          format: uuid
+          type: string
+        accountId:
+          format: uuid
+          type: string
+        name:
+          type: string
+          maxLength: 50
+        type:
+          type: string
+        currency:
+          type: string
+          maxLength: 16
+      required:
+        - id
+      type: object
+    Transaction:
+      example:
+        id: '272cc0f8-2e32-458f-9063-7f33790d0533'
+        walletId: '0e3b8938-4516-46f8-a1fa-c0b2d7a889a9'
+        amount: 3.45
+        tradeDate: '2000-01-23T04:56:07.000+00:00'
+        settlementDate: '2000-01-23T04:56:07.000+00:00'
+        completed: false
+        type: 'CARD'
+      properties:
+        id:
+          format: uuid
+          type: string
+        walletId:
+          format: uuid
+          type: string
+        amount:
+          format: int64
+          type: integer
+        tradeDate:
+          format: date-time
+          type: string
+        settlementDate:
+          format: date-time
+          type: string
+        type:
+          type: string
+        completed:
+          default: false
+          type: boolean
+      type: object
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    basicAuth:
+      type: http
+      scheme: basic
