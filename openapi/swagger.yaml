@@ -13,12 +13,12 @@ externalDocs:
   description: Find out more about Fintecy
   url: 'http://fintecy.org'
 servers:
-  - description: prod
-    url: 'https://api.fintecy.org/v1'
-  - description: dev
-    url: 'https://api-sandbox.fintecy.org/v1'
   - description: local
     url: 'http://localhost:8080'
+  - description: dev
+    url: 'https://api-sandbox.fintecy.org/v1'
+  - description: prod
+    url: 'https://api.fintecy.org/v1'
 tags:
   - name: auth
     description: Authorization actions
