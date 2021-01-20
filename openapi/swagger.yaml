@@ -114,30 +114,6 @@ paths:
       security:
         - bearerAuth: []
   /users:
-    get:
-      operationId: getUsers
-      summary: Get user list
-      description: Load list of registered users
-      tags:
-        - users
-      parameters:
-        - name: status
-          in: query
-          explode: false
-          required: false
-          description: 'Filter by user status'
-          schema:
-            type: string
-      responses:
-        default:
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                items:
-                  $ref: '#/components/schemas/User'
-      security:
-        - bearerAuth: []
     post:
       operationId: createUser
       summary: Register new user
@@ -167,7 +143,7 @@ paths:
     get:
       operationId: getUser
       description: Fetch user details from server
-      summary: Get user by user name
+      summary: Get user details
       tags:
         - users
       parameters:
