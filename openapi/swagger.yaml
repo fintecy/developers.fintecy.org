@@ -448,34 +448,6 @@ paths:
           description: successful operation
       security:
         - bearerAuth: []
-  '/wallets/{walletId}/transactions':
-    get:
-      operationId: getWalletTransactions
-      summary: Wallet transactions
-      description: Blotter of wallet transactions
-      tags:
-        - transactions
-      parameters:
-        - name: walletId
-          in: path
-          explode: false
-          required: true
-          description: Wallet id to delete
-          schema:
-            format: uuid
-            type: string
-          style: simple
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Transaction'
-          description: successful operation
-      security:
-        - bearerAuth: []
   '/transactions':
     get:
       operationId: getTransactions
@@ -584,7 +556,8 @@ paths:
         '404':
           content: {}
           description: Order not found
-
+      security:
+        - basicAuth: []
 components:
   schemas:
     JwtToken:
