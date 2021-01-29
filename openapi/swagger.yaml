@@ -558,6 +558,60 @@ paths:
           description: Order not found
       security:
         - basicAuth: []
+  '/rates':
+    get:
+      operationId: getRates
+      summary: FX rates
+      description: Exchange rates for currencies
+      tags:
+        - system
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ExchangeRAtes'
+          description: "list of exchange rates"
+      security:
+        - bearerAuth: []
+  '/notifications':
+    get:
+      operationId: getNotifications
+      summary: Notifications
+      description: Users notifications
+      tags:
+        - system
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Notification'
+          description: "list of users notifications"
+      security:
+        - bearerAuth: []
+  '/subscriptions':
+    get:
+      operationId: getSubscriptions
+      summary: Subscriptions
+      description: Users subscriptions
+      tags:
+        - system
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Subscription'
+          description: "list of users Subscriptions"
+      security:
+        - bearerAuth: []
 components:
   schemas:
     JwtToken:
@@ -599,6 +653,61 @@ components:
         email:
           type: string
         password:
+          type: string
+      type: object
+    Subscription:
+      example:
+        name: "internet"
+        period: "1M"
+        startDate: "2021-01-25"
+        amount: 32.00
+        currency: "GBP"
+      properties:
+        name:
+          type: string
+        period:
+          type: string
+        startDate:
+          type: string
+        amount:
+          format: double
+          type: number
+        currency:
+          type: string
+      type: object
+    Notification:
+      example:
+        message: "This is example of notification sent to client"
+        link: "https://app.fintecy.org/quotes"
+        date: "2021-01-20"
+      properties:
+        message:
+          type: string
+        link:
+          type: string
+        date:
+          type: string
+          format: date
+      type: object
+    ExchangeRate:
+      example:
+        baseCurrency: "USD"
+        counterCurrency: "RUB"
+        ask: 75.56
+        bid: 75.55
+        origin: "OXR"
+      properties:
+        baseCurrency:
+          type: string
+        counterCurrency:
+          type: string
+        ask:
+          format: double
+          type: number
+        bid:
+          format: double
+          type: number
+        origin:
           type: string
       type: object
     User:
