@@ -13,12 +13,10 @@ externalDocs:
   description: Find out more about Fintecy
   url: 'http://fintecy.org'
 servers:
-  - description: local
-    url: 'http://localhost:8080'
-  - description: dev
-    url: 'https://api-sandbox.fintecy.org/v1'
   - description: prod
     url: 'https://api.fintecy.org/v1'
+  - description: dev
+    url: 'https://api-sandbox.fintecy.org/v1'
 tags:
   - name: auth
     description: Authorization actions
@@ -72,6 +70,7 @@ paths:
           description: Confirmation token
           example: '123456'
           schema:
+            type: string
             format: string
             minLength: 6
             maxLength: 6
@@ -572,7 +571,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/ExchangeRAtes'
+                  $ref: '#/components/schemas/ExchangeRate'
           description: "list of exchange rates"
       security:
         - bearerAuth: []
@@ -678,12 +677,12 @@ components:
     Notification:
       example:
         message: "This is example of notification sent to client"
-        link: "https://app.fintecy.org/quotes"
+        url: "https://app.fintecy.org/quotes"
         date: "2021-01-20"
       properties:
         message:
           type: string
-        link:
+        url:
           type: string
         date:
           type: string
@@ -745,6 +744,7 @@ components:
         id: '1c600fc7-0d99-42b4-abea-eb74f5e6ab0a'
         userId: '89511893-7ee7-4ca0-ace6-821895ecea31'
         organizationId: '828d9f32-1465-4b48-84a0-02638c2c0f33'
+        code: 'HSBC'
         name: 'HSBC'
         state: 'ACTIVE'
       properties:
@@ -756,6 +756,8 @@ components:
           type: string
         organizationId:
           format: uuid
+          type: string
+        code:
           type: string
         name:
           type: string
@@ -807,10 +809,16 @@ components:
         id:
           format: uuid
           type: string
-        walletId:
+        fromWalletId:
           format: uuid
           type: string
-        amount:
+        toWalletId:
+          format: uuid
+          type: string
+        fromAmount:
+          format: int64
+          type: integer
+        toAmount:
           format: int64
           type: integer
         tradeDate:
